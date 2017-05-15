@@ -14,3 +14,6 @@ type Msg
     | GotTalks (Result Http.Error (List Talk))
     | GetTalk String
     | GotTalk (Result Http.Error Talk)
+    | UpdateTalkField Talk
+    | UpdateTalk Talk
+    | TalkUpdated (Result Http.Error Talk)
