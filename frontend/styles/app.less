@@ -1,0 +1,21 @@
+.app {
+    display: flex;
+    height: 100%;
+
+    &__events {
+        overflow-y: scroll;
+        background: #333;
+        min-width: 10em;
+    }
+
+    &__talks {
+        overflow-y: scroll;
+        background: #eee;
+        min-width: 30em;
+    }
+
+    &__talk {
+        flex-grow: 1;
+        overflow-y: auto;
+    }
+}
