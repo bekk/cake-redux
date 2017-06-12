@@ -21,7 +21,6 @@ import java.io.InputStream;
 import java.io.PrintWriter;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 public class DataServlet extends HttpServlet {
     private SleepingpillCommunicator sleepingpillCommunicator;
@@ -235,6 +234,8 @@ public class DataServlet extends HttpServlet {
             appendFeedbacks(oneTalkAsJson,encTalk);
             // TODO Fix feedbacks
             appendUserFeedback(oneTalkAsJson, userFeedbackCommunicator.feedback(oneTalkAsJson.stringValue("emslocation")));
+	    UserAccessType userAccessType = computeAccessType(request);
+	    oneTalkAsJson.put("canEdit", userAccessType == UserAccessType.FULL);
             writer.append(SleepingpillCommunicator.jsonHackFix(oneTalkAsJson.toJson()));
         } else if ("/events".equals(pathInfo)) {
             writer.append(sleepingpillCommunicator.allEvents());
