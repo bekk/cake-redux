@@ -18,8 +18,7 @@ view talk =
             [ h3 [] [ text "Equipment" ]
             , p [] [ text talk.equipment ]
             , h3 [] [ text "Talk status" ]
-            , p [] [ viewTalkStatus talk ]
-            , button [ onClick <| UpdateTalk talk ] [ text "Save" ]
+            , viewStatus talk
             ]
         ]
 
@@ -39,6 +38,19 @@ viewSpeakers speakers =
 viewSpeaker : Speaker -> Html Msg
 viewSpeaker speaker =
     li [] [ text speaker.name ]
+
+
+viewStatus : Talk -> Html Msg
+viewStatus talk =
+    if talk.canEdit then
+        div []
+            [ p [] [ viewTalkStatus talk ]
+            , button [ onClick <| UpdateTalk talk ] [ text "Save" ]
+            ]
+    else
+        div []
+            [ p [] [ text talk.state ]
+            ]
 
 
 viewTalkStatus : Talk -> Html Msg

@@ -1,8 +1,8 @@
 module Model.Talk exposing (Talk, Speaker, talkDecoder, talksDecoder, talkEncoder)
 
-import Json.Decode exposing (Decoder, string, list)
+import Json.Decode exposing (Decoder, string, list, bool)
 import Json.Encode as Encode
-import Json.Decode.Pipeline exposing (decode, required)
+import Json.Decode.Pipeline exposing (decode, required, optional)
 
 
 type alias Talk =
@@ -16,6 +16,7 @@ type alias Talk =
     , title : String
     , speakers : List Speaker
     , lastModified : String
+    , canEdit : Bool
     }
 
 
@@ -44,6 +45,7 @@ talkDecoder =
         |> required "title" string
         |> required "speakers" (list speakerDecoder)
         |> required "lastModified" string
+        |> optional "canEdit" bool False
 
 
 talkEncoder : Talk -> Encode.Value
