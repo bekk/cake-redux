@@ -5,6 +5,7 @@ import no.javazone.cake.redux.auth0.Auth0Service;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Optional;
 
@@ -17,6 +18,7 @@ public class SecurityFilter implements Filter {
     @Override
     public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain) throws IOException, ServletException {
         HttpServletRequest request = (HttpServletRequest) req;
+        HttpServletResponse response = (HttpServletResponse) resp;
         if (Configuration.noAuthMode()) {
             request.getSession().setAttribute("username", "Dummyuser");
             chain.doFilter(req, resp);
@@ -31,6 +33,7 @@ public class SecurityFilter implements Filter {
             request.getSession().setAttribute("username", email);
             chain.doFilter(req, resp);
         } else {
+            response.setStatus(403);
             resp.setContentType("text/html");
             resp.getWriter().append("You are not logged in. Blocked.");
         }
