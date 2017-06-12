@@ -17,7 +17,6 @@ view talk =
         , div []
             [ h3 [] [ text "Equipment" ]
             , p [] [ text talk.equipment ]
-            , h3 [] [ text "Talk status" ]
             , viewStatus talk
             ]
         ]
@@ -47,13 +46,12 @@ viewStatus : Talk -> Html Msg
 viewStatus talk =
     if talk.canEdit then
         div []
-            [ p [] [ viewTalkStatus talk ]
+            [ h3 [] [ text "Talk Status" ]
+            , p [] [ viewTalkStatus talk ]
             , button [ onClick <| UpdateTalk talk ] [ text "Save" ]
             ]
     else
-        div []
-            [ p [] [ text talk.state ]
-            ]
+        div [] []
 
 
 viewTalkStatus : Talk -> Html Msg
