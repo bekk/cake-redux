@@ -1,0 +1,9 @@
+global:
+  application_name: cake-redux
+  default_platform: Java 8
+  default_ec2_keyname: bekkfagdag
+  default_region: eu-central-1
+  profile: bekkfagdag
+  sc: git
+deploy:
+  artifact: app.zip
