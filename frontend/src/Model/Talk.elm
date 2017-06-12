@@ -15,6 +15,7 @@ type alias Talk =
     , state : String
     , title : String
     , speakers : List Speaker
+    , lastModified : String
     }
 
 
@@ -42,6 +43,7 @@ talkDecoder =
         |> required "state" string
         |> required "title" string
         |> required "speakers" (list speakerDecoder)
+        |> required "lastModified" string
 
 
 talkEncoder : Talk -> Encode.Value
@@ -51,6 +53,7 @@ talkEncoder talk =
         , ( "state", Encode.string talk.state )
         , ( "tags", Encode.list <| [ Encode.string "" ] )
         , ( "keywords", Encode.list <| [ Encode.string "" ] )
+        , ( "lastModified", Encode.string talk.lastModified )
         ]
 
 
