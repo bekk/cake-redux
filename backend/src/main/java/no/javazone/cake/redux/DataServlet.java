@@ -28,6 +28,7 @@ public class DataServlet extends HttpServlet {
     private UserFeedbackCommunicator userFeedbackCommunicator;
 
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+	resp.setContentType("application/json;charset=UTF-8");
         String pathInfo = req.getPathInfo();
         if ("/editTalk".equals(pathInfo)) {
             updateTalk(req, resp);
@@ -43,13 +44,10 @@ public class DataServlet extends HttpServlet {
             massPublish(req, resp);
         } else if ("/addComment".equals(pathInfo)) {
             addComment(req, resp);
-            resp.setContentType("application/json;charset=UTF-8");
         } else if ("/giveRating".equals(pathInfo)) {
             giveRating(req, resp);
-            resp.setContentType("application/json;charset=UTF-8");
         } else if ("/addPubComment".equals(pathInfo)) {
             addPublicComment(req,resp);
-            resp.setContentType("application/json;charset=UTF-8");
         }
 
     }
