@@ -53,15 +53,15 @@ public class SleepingpillCommunicator {
 
     public static String jsonHackFix(String jsonstr) {
         StringBuilder fixed = new StringBuilder(jsonstr);
-	for (int i = 0; i < fixed.length(); i++) {
+        for (int i = 0; i < fixed.length(); i++) {
             if (fixed.charAt(i) == '\u000B') {
-		fixed.replace(i, i + 1, " ");
+                fixed.replace(i, i + 1, " ");
             }
         }
         return fixed.toString();
     }
 
-    public JsonObject oneTalkAsJson(String talkid) {
+    public JsonObject oneTalkAsJson(String talkid, UserAccessType userAccessType) {
         JsonObject talk = oneTalkStripped(talkid);
         JsonArray allConferences = parseJsonFromConnection(openConnection(Configuration.sleepingPillBaseLocation() + "/data/conference")).requiredArray("conferences");
 
@@ -73,18 +73,20 @@ public class SleepingpillCommunicator {
             JsonObject speaker = (JsonObject) part;
             String speakerEmail = speaker.requiredString("email");
             try {
-		speakerEmail = URLEncoder.encode(speakerEmail, "UTF-8");
-	    } catch (UnsupportedEncodingException ignored) {
-	    }
+                speakerEmail = URLEncoder.encode(speakerEmail, "UTF-8");
+            } catch (UnsupportedEncodingException ignored) {
+            }
             String url = Configuration.sleepingPillBaseLocation() + "/data/submitter/" + speakerEmail + "/session";
             JsonObject speakerTalks = parseJsonFromConnection(openConnection(url));
             JsonArray otherTalks = JsonArray.fromNodeStream(
                     speakerTalks.requiredArray("sessions").objectStream()
                             .filter(obj -> !(obj.stringValue("id").equals(Optional.of(talkid)) || obj.stringValue("status").equals(Optional.of("DRAFT"))))
-			    .map(obj -> buildSimularTalk(obj, allConferences))
+                            .map(obj -> buildSimularTalk(obj, allConferences))
             );
-	    speaker.put("spOtherTalks", otherTalks);
+            speaker.put("spOtherTalks", otherTalks);
         }
+
+        talk.put("canEdit", userAccessType == UserAccessType.FULL);
 
         return talk;
     }
@@ -105,9 +107,9 @@ public class SleepingpillCommunicator {
                 .put("sessionId", obj.requiredString("sessionId"))
                 .put("href", href)
                 .put("title", title)
-		.put("conference", confname)
-		.put("tags", tags)
-		.put("status", status);
+                .put("conference", confname)
+                .put("tags", tags)
+                .put("status", status);
 
     }
 
@@ -132,45 +134,45 @@ public class SleepingpillCommunicator {
         return jsonObject;
     }
 
-    public String fetchOneTalk(String talkid) {
-        return oneTalkAsJson(talkid).toJson();
+    public String fetchOneTalk(String talkid, UserAccessType accessType) {
+        return oneTalkAsJson(talkid, accessType).toJson();
     }
 
     private static JsonObject talkObj(JsonObject jsonObject) {
         JsonObject talkob = JsonFactory.jsonObject();
-	talkob.put("title", readValueFromProp(jsonObject, "title"));
-	talkob.put("format", readValueFromProp(jsonObject, "format"));
-	talkob.put("lang", readValueFromProp(jsonObject, "language"));
-	talkob.put("keywords", readValueFromProp(jsonObject, "keywords", JsonFactory.jsonArray()));
-	talkob.put("suggestedKeywords", readValueFromProp(jsonObject, "suggestedKeywords"));
-	talkob.put("audience", readValueFromProp(jsonObject, "intendedAudience"));
-	talkob.put("equipment", readValueFromProp(jsonObject, "equipment"));
-	talkob.put("outline", readValueFromProp(jsonObject, "outline"));
-	talkob.put("infoToProgramCommittee", readValueFromProp(jsonObject, "infoToProgramCommittee"));
-	talkob.put("length", readValueFromProp(jsonObject, "length"));
-	talkob.put("summary", "");
-	talkob.put("level", readValueFromProp(jsonObject, "level"));
-	talkob.put("tags", readValueFromProp(jsonObject, "tags", JsonFactory.jsonArray()));
-	talkob.put("published", new Boolean(Arrays.asList("APPROVED", "HISTORIC").contains(jsonObject.requiredString("status"))).toString());
-	talkob.put("body", readValueFromProp(jsonObject, "abstract"));
-	talkob.put("ref", jsonObject.requiredString("id"));
-	jsonObject.stringValue("lastUpdated").ifPresent(lu -> talkob.put("lastModified", lu));
-	Optional.of(readValueFromProp(jsonObject, "emslocation"))
+        talkob.put("title", readValueFromProp(jsonObject, "title"));
+        talkob.put("format", readValueFromProp(jsonObject, "format"));
+        talkob.put("lang", readValueFromProp(jsonObject, "language"));
+        talkob.put("keywords", readValueFromProp(jsonObject, "keywords", JsonFactory.jsonArray()));
+        talkob.put("suggestedKeywords", readValueFromProp(jsonObject, "suggestedKeywords"));
+        talkob.put("audience", readValueFromProp(jsonObject, "intendedAudience"));
+        talkob.put("equipment", readValueFromProp(jsonObject, "equipment"));
+        talkob.put("outline", readValueFromProp(jsonObject, "outline"));
+        talkob.put("infoToProgramCommittee", readValueFromProp(jsonObject, "infoToProgramCommittee"));
+        talkob.put("length", readValueFromProp(jsonObject, "length"));
+        talkob.put("summary", "");
+        talkob.put("level", readValueFromProp(jsonObject, "level"));
+        talkob.put("tags", readValueFromProp(jsonObject, "tags", JsonFactory.jsonArray()));
+        talkob.put("published", new Boolean(Arrays.asList("APPROVED", "HISTORIC").contains(jsonObject.requiredString("status"))).toString());
+        talkob.put("body", readValueFromProp(jsonObject, "abstract"));
+        talkob.put("ref", jsonObject.requiredString("id"));
+        jsonObject.stringValue("lastUpdated").ifPresent(lu -> talkob.put("lastModified", lu));
+        Optional.of(readValueFromProp(jsonObject, "emslocation"))
                 .filter(s -> !s.stringValue().isEmpty())
-		.ifPresent(v -> talkob.put("emslocation", v));
+                .ifPresent(v -> talkob.put("emslocation", v));
 
-	talkob.put("state", jsonObject.requiredString("status"));
+        talkob.put("state", jsonObject.requiredString("status"));
 
-	talkob.put("speakers", JsonArray.fromNodeStream(
-		jsonObject.requiredArray("speakers").objectStream()
-			.map(ob -> JsonFactory.jsonObject()
-				.put("name", ob.stringValue("name").orElse(""))
-				.put("email", ob.stringValue("email").orElse(""))
-				.put("bio", readValueFromProp(ob, "bio"))
-				.put("zip-code", readValueFromProp(ob, "zip-code"))
-				.put("twitter", readValueFromProp(ob, "twitter"))
+        talkob.put("speakers", JsonArray.fromNodeStream(
+                jsonObject.requiredArray("speakers").objectStream()
+                        .map(ob -> JsonFactory.jsonObject()
+                                .put("name", ob.stringValue("name").orElse(""))
+                                .put("email", ob.stringValue("email").orElse(""))
+                                .put("bio", readValueFromProp(ob, "bio"))
+                                .put("zip-code", readValueFromProp(ob, "zip-code"))
+                                .put("twitter", readValueFromProp(ob, "twitter"))
                         )));
-	talkob.put("pubcomments", jsonObject.arrayValue("comments").orElse(JsonFactory.jsonArray()));
+        talkob.put("pubcomments", jsonObject.arrayValue("comments").orElse(JsonFactory.jsonArray()));
 
         return talkob;
 
@@ -178,12 +180,12 @@ public class SleepingpillCommunicator {
     }
 
     private static JsonNode readValueFromProp(JsonObject talkObj, String key) {
-	return readValueFromProp(talkObj, key, new JsonString(""));
+        return readValueFromProp(talkObj, key, new JsonString(""));
     }
 
     private static JsonNode readValueFromProp(JsonObject talkObj, String key, JsonNode defaultValue) {
         return talkObj.requiredObject("data")
-		.objectValue(key).orElse(JsonFactory.jsonObject().put("value", defaultValue))
+                .objectValue(key).orElse(JsonFactory.jsonObject().put("value", defaultValue))
                 .value("value").orElseThrow(() -> new RuntimeException("Unknown property " + key));
 
     }
@@ -198,7 +200,7 @@ public class SleepingpillCommunicator {
     }
 
     public JsonArray allTalkFromConferenceSleepingPillFormat(String conferenceid) {
-	String url = Configuration.sleepingPillBaseLocation() + "/data/conference/" + conferenceid + "/session";
+        String url = Configuration.sleepingPillBaseLocation() + "/data/conference/" + conferenceid + "/session";
         URLConnection urlConnection = openConnection(url);
         JsonObject jsonObject;
         try (InputStream inputStream = urlConnection.getInputStream()) {
@@ -244,14 +246,14 @@ public class SleepingpillCommunicator {
         checkWriteAccess(userAccessType);
         JsonObject input = JsonFactory.jsonObject()
                 .put("tags", jsonObject().put("value", JsonArray.fromStringList(tags)).put("privateData", true));
-	sendTalkUpdate(ref, jsonObject().put("data", input).put("lastUpdated", lastModified));
+        sendTalkUpdate(ref, jsonObject().put("data", input).put("lastUpdated", lastModified));
     }
 
     public String update(String ref, List<String> taglist, List<String> keywords, String state, String lastModified, UserAccessType userAccessType) {
-	if (!Configuration.noAuthMode() && userAccessType != UserAccessType.FULL) {
-	    System.out.println("Doesn't update talk, as user doesn't have FULL access. Update config to fix...");
-	    return fetchOneTalk(ref);
-	}
+        if (!Configuration.noAuthMode() && userAccessType != UserAccessType.FULL) {
+            System.out.println("Doesn't update talk, as user doesn't have FULL access. Update config to fix...");
+            return fetchOneTalk(ref, userAccessType);
+        }
         checkWriteAccess(userAccessType);
         JsonObject jsonObject = oneTalkStripped(ref);
         JsonArray currenttags = jsonObject.requiredArray("tags");
@@ -274,15 +276,15 @@ public class SleepingpillCommunicator {
             payload.put("data", input);
         }
 
-	payload.put("status", state);
+        payload.put("status", state);
 
         if (payload.isEmpty()) {
-            return fetchOneTalk(ref);
+            return fetchOneTalk(ref, userAccessType);
 
         }
-	payload.put("lastUpdated", lastModified);
+        payload.put("lastUpdated", lastModified);
         sendTalkUpdate(ref, payload);
-        return fetchOneTalk(ref);
+        return fetchOneTalk(ref, userAccessType);
     }
 
     public JsonObject sendTalkUpdate(String ref, JsonObject payload) {
@@ -294,7 +296,7 @@ public class SleepingpillCommunicator {
         try {
             conn.setRequestMethod("PUT");
             conn.setDoOutput(true);
-	    try (PrintWriter printWriter = new PrintWriter(new OutputStreamWriter(conn.getOutputStream(), "utf-8"))) {
+            try (PrintWriter printWriter = new PrintWriter(new OutputStreamWriter(conn.getOutputStream(), "utf-8"))) {
                 payload.toJson(printWriter);
             }
             try (InputStream is = conn.getInputStream()) {
@@ -310,14 +312,14 @@ public class SleepingpillCommunicator {
     public void approveTalk(String ref, UserAccessType userAccessType) {
         checkWriteAccess(userAccessType);
         JsonObject payload = jsonObject().put("status", "APPROVED");
-	sendTalkUpdate(ref, payload);
+        sendTalkUpdate(ref, payload);
     }
 
     private String confirmTalkMessage(String status, String message) {
         JsonObject jsonObject = JsonFactory.jsonObject();
 
-	jsonObject.put("status", status);
-	jsonObject.put("message", message);
+        jsonObject.put("status", status);
+        jsonObject.put("message", message);
         return jsonObject.toString();
     }
 
@@ -331,17 +333,17 @@ public class SleepingpillCommunicator {
             tags.add(atag);
         }
         if (tags.contains("confirmed")) {
-	    return confirmTalkMessage("error", "Talk has already been confirmed");
+            return confirmTalkMessage("error", "Talk has already been confirmed");
         }
         if (!tags.contains("accepted")) {
-	    return confirmTalkMessage("error", "Talk is not accepted");
+            return confirmTalkMessage("error", "Talk is not accepted");
         }
         if ("yes".equals(dinner)) {
             tags.add("dinner");
         }
         tags.add("confirmed");
 
-	updateTags(ref, tags, userAccessType, jsonTalk.requiredString("lastModified"));
+        updateTags(ref, tags, userAccessType, jsonTalk.requiredString("lastModified"));
 
         return confirmTalkMessage("ok", "ok");
     }
@@ -349,11 +351,11 @@ public class SleepingpillCommunicator {
 
     public JsonObject addPublicComment(String ref, String comment, String lastModified) {
         JsonObject payload = JsonFactory.jsonObject();
-	payload.put("lastUpdated", lastModified);
+        payload.put("lastUpdated", lastModified);
 
         JsonObject commentobj = JsonFactory.jsonObject().put("email", "program@java.no").put("from", "JavaZone program commitee").put("comment", comment);
 
-	payload.put("comments", JsonFactory.jsonArray().add(commentobj));
+        payload.put("comments", JsonFactory.jsonArray().add(commentobj));
 
         JsonObject jsonObject = sendTalkUpdate(ref, payload);
         return jsonObject;

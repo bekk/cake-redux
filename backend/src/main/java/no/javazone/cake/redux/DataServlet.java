@@ -28,18 +28,18 @@ public class DataServlet extends HttpServlet {
     private UserFeedbackCommunicator userFeedbackCommunicator;
 
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-	resp.setContentType("application/json;charset=UTF-8");
+        resp.setContentType("application/json;charset=UTF-8");
         String pathInfo = req.getPathInfo();
         if ("/editTalk".equals(pathInfo)) {
             updateTalk(req, resp);
         } else if ("/acceptTalks".equals(pathInfo)) {
-            acceptTalks(req,resp);
+            acceptTalks(req, resp);
         } else if ("/massUpdate".equals(pathInfo)) {
             massUpdate(req, resp);
         } else if ("/assignRoom".equals(pathInfo)) {
-            assignRoom(req,resp);
+            assignRoom(req, resp);
         } else if ("/assignSlot".equals(pathInfo)) {
-            assignSlot(req,resp);
+            assignSlot(req, resp);
         } else if ("/massPublish".equals(pathInfo)) {
             massPublish(req, resp);
         } else if ("/addComment".equals(pathInfo)) {
@@ -47,7 +47,7 @@ public class DataServlet extends HttpServlet {
         } else if ("/giveRating".equals(pathInfo)) {
             giveRating(req, resp);
         } else if ("/addPubComment".equals(pathInfo)) {
-            addPublicComment(req,resp);
+            addPublicComment(req, resp);
         }
 
     }
@@ -70,8 +70,6 @@ public class DataServlet extends HttpServlet {
         updatedComments.toJson(resp.getWriter());
 
 
-
-
     }
 
     private SimpleEmail generateCommentEmail(JsonObject jsonObject) {
@@ -86,7 +84,7 @@ public class DataServlet extends HttpServlet {
                             throw new RuntimeException(e);
                         }
                     });
-            AcceptorSetter.setupMailHeader(simpleEmail,"Regarding your JavaZone submission");
+            AcceptorSetter.setupMailHeader(simpleEmail, "Regarding your JavaZone submission");
             simpleEmail.setMsg("Hello,\n\n" +
                     "The program committee has added a comment to your submission that requires your attention. " +
                     "Please head to https://submit.javazone.no to see the comment.\n" +
@@ -111,18 +109,17 @@ public class DataServlet extends HttpServlet {
         try (InputStream inputStream = req.getInputStream()) {
             JsonObject update = JsonParser.parseToObject(inputStream);
             String ref = update.requiredString("ref");
-            approveTalk(ref,computeAccessType(req));
+            approveTalk(ref, computeAccessType(req));
         }
         JsonObject objectNode = JsonFactory.jsonObject();
-        objectNode.put("status","ok");
+        objectNode.put("status", "ok");
         resp.setContentType("text/json");
         objectNode.toJson(resp.getWriter());
     }
 
-    private void approveTalk(String ref,UserAccessType userAccessType) throws IOException {
-        sleepingpillCommunicator.approveTalk(ref,userAccessType);
+    private void approveTalk(String ref, UserAccessType userAccessType) throws IOException {
+        sleepingpillCommunicator.approveTalk(ref, userAccessType);
     }
-
 
 
     private void assignRoom(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -163,13 +160,11 @@ public class DataServlet extends HttpServlet {
     }
 
 
-
-
     private static UserAccessType computeAccessType(HttpServletRequest request) {
         String fullusers = Optional.ofNullable(Configuration.fullUsers()).orElse("");
         if (Optional.ofNullable(request.getSession().getAttribute("username"))
-            .filter(un -> fullusers.contains((String) un))
-            .isPresent()) {
+                .filter(un -> fullusers.contains((String) un))
+                .isPresent()) {
             return UserAccessType.FULL;
         }
         return UserAccessType.WRITE;
@@ -181,7 +176,7 @@ public class DataServlet extends HttpServlet {
             JsonArray talks = obj.requiredArray("talks");
             String inputStr = CommunicatorHelper.toString(inputStream);
 
-            String statusJson = acceptorSetter.accept(talks,computeAccessType(req));
+            String statusJson = acceptorSetter.accept(talks, computeAccessType(req));
             resp.getWriter().append(statusJson);
         }
     }
@@ -189,11 +184,12 @@ public class DataServlet extends HttpServlet {
     private void massUpdate(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         try (InputStream inputStream = req.getInputStream()) {
             JsonObject input = JsonParser.parseToObject(inputStream);
-            String statusJson = acceptorSetter.massUpdate(input,computeAccessType(req));
+            String statusJson = acceptorSetter.massUpdate(input, computeAccessType(req));
             resp.getWriter().append(statusJson);
 
         }
     }
+
     private void updateTalk(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         JsonObject update;
         try (InputStream inputStream = req.getInputStream()) {
@@ -211,7 +207,7 @@ public class DataServlet extends HttpServlet {
         List<String> keywordlist = keywords.strings();
 
         //String newTalk = emsCommunicator.update(ref, taglist, state, lastModified,computeAccessType(req));
-        String newTalk = sleepingpillCommunicator.update(ref, taglist, keywordlist,state, lastModified,computeAccessType(req));
+        String newTalk = sleepingpillCommunicator.update(ref, taglist, keywordlist, state, lastModified, computeAccessType(req));
         resp.getWriter().append(newTalk);
 
     }
@@ -228,20 +224,18 @@ public class DataServlet extends HttpServlet {
 
         } else if ("/atalk".equals(pathInfo)) {
             String encTalk = request.getParameter("talkId");
-            JsonObject oneTalkAsJson = sleepingpillCommunicator.oneTalkAsJson(encTalk);
-            appendFeedbacks(oneTalkAsJson,encTalk);
+            JsonObject oneTalkAsJson = sleepingpillCommunicator.oneTalkAsJson(encTalk, computeAccessType(request));
+            appendFeedbacks(oneTalkAsJson, encTalk);
             // TODO Fix feedbacks
             appendUserFeedback(oneTalkAsJson, userFeedbackCommunicator.feedback(oneTalkAsJson.stringValue("emslocation")));
-	    UserAccessType userAccessType = computeAccessType(request);
-	    oneTalkAsJson.put("canEdit", userAccessType == UserAccessType.FULL);
             writer.append(SleepingpillCommunicator.jsonHackFix(oneTalkAsJson.toJson()));
         } else if ("/events".equals(pathInfo)) {
             writer.append(sleepingpillCommunicator.allEvents());
         } else if ("/roomsSlots".equals(pathInfo)) {
             String encEvent = request.getParameter("eventId");
             JsonFactory.jsonObject()
-                    .put("rooms",JsonFactory.jsonArray())
-                    .put("slots",JsonFactory.jsonArray())
+                    .put("rooms", JsonFactory.jsonArray())
+                    .put("slots", JsonFactory.jsonArray())
                     .toJson(writer);
             //writer.append(emsCommunicator.allRoomsAndSlots(encEvent));
         }
@@ -258,13 +252,13 @@ public class DataServlet extends HttpServlet {
 
     private void appendFeedbacks(JsonObject oneTalkAsJson, String encTalk) {
         JsonArray comments = FeedbackService.get().commentsForTalk(encTalk);
-        oneTalkAsJson.put("comments",comments);
+        oneTalkAsJson.put("comments", comments);
         JsonArray ratings = FeedbackService.get().ratingsForTalk(encTalk);
-        oneTalkAsJson.put("ratings",ratings);
+        oneTalkAsJson.put("ratings", ratings);
         Optional<String> contact = FeedbackService.get().contactForTalk(encTalk);
-        oneTalkAsJson.put("contactPhone",contact.orElse("Unknown"));
+        oneTalkAsJson.put("contactPhone", contact.orElse("Unknown"));
     }
-    
+
 
     @Override
     public void init() throws ServletException {
@@ -283,7 +277,7 @@ public class DataServlet extends HttpServlet {
         try {
             super.service(req, resp);
         } catch (NoUserAceessException ex) {
-            resp.sendError(HttpServletResponse.SC_FORBIDDEN,"User do not have write access");
+            resp.sendError(HttpServletResponse.SC_FORBIDDEN, "User do not have write access");
         }
     }
 
