@@ -31,8 +31,8 @@ public class WebServer {
         if (args.length > 1) {
             warFile = args[1];
         }
-        System.setProperty("cake-redux-config-file",args[0]);
-        new WebServer(getPort(8081),warFile).start();
+	System.setProperty("cake-redux-config-file", args[0]);
+	new WebServer(getPort(8081), warFile).start();
     }
 
 
@@ -50,14 +50,14 @@ public class WebServer {
             webAppContext.setBaseResource(Resource.newClassPathResource("webapp", true, false));
         }
 
-        webAppContext.addServlet(new ServletHolder(new DataServlet()),"/api/secured/data/*");
-        webAppContext.addServlet(new ServletHolder(new OpenDataServlet()),"/api/data/*");
+	webAppContext.addServlet(new ServletHolder(new DataServlet()), "/api/secured/data/*");
+	webAppContext.addServlet(new ServletHolder(new OpenDataServlet()), "/api/data/*");
         webAppContext.addServlet(new ServletHolder(new SigninServlet()), "/api/signin/");
         webAppContext.addServlet(new ServletHolder(new EntranceServlet()), "/api/entrance");
-        webAppContext.addServlet(new ServletHolder(new WhydaServlet()),"/api/whydalogin");
+	webAppContext.addServlet(new ServletHolder(new WhydaServlet()), "/api/whydalogin");
 
-        webAppContext.addFilter(new FilterHolder(new SecurityFilter()), "/api/secured/*", EnumSet.of(REQUEST));
 	webAppContext.addFilter(new FilterHolder(new CorsFilter()), "/api/*", EnumSet.of(REQUEST));
+        webAppContext.addFilter(new FilterHolder(new SecurityFilter()), "/api/secured/*", EnumSet.of(REQUEST));
 
 
         return webAppContext;
