@@ -63,4 +63,4 @@ updateTalk talk =
 
 url : String -> String
 url path =
-    "http://localhost:8081/secured/data/" ++ path
+    "https://admin.cfp.bekk.no/api/secured/data/" ++ path
