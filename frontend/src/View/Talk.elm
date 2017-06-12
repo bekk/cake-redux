@@ -1,6 +1,6 @@
 module View.Talk exposing (view)
 
-import Html exposing (Html, div, text, h2, h3, p, select, option, button, ul, li)
+import Html exposing (Html, div, text, h2, h3, h4, p, select, option, button, ul, li)
 import Html.Attributes exposing (class, value, selected)
 import Html.Events exposing (onInput, onClick)
 import Messages exposing (Msg(..))
@@ -28,7 +28,7 @@ viewSpeakers speakers =
     div []
         [ h3 []
             [ text "Speakers" ]
-        , ul [] <|
+        , ul [ class "talk__speakers" ] <|
             List.map
                 viewSpeaker
                 speakers
@@ -37,7 +37,10 @@ viewSpeakers speakers =
 
 viewSpeaker : Speaker -> Html Msg
 viewSpeaker speaker =
-    li [] [ text speaker.name ]
+    li []
+        [ h4 [ class "talk__speaker-name" ] [ text speaker.name ]
+        , p [ class "talk__speaker-bio" ] [ text speaker.bio ]
+        ]
 
 
 viewStatus : Talk -> Html Msg
