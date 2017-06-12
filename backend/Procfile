@@ -1,1 +1,1 @@
-web: java -jar -Djava.net.preferIPv4Stack=true -Dfile.encoding=UTF-8 -Djava.security.egd=file:///dev/urandom app.jar application.properties
+web: java -jar -Djava.net.preferIPv4Stack=true -Dfile.encoding=UTF-8 -Djava.security.egd=file:///dev/urandom app.jar /var/app/current/application.properties
