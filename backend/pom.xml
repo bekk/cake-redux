@@ -41,6 +41,14 @@
             <artifactId>jetty-plus</artifactId>
             <version>9.0.6.v20130930</version>
         </dependency>
+
+
+        <dependency>
+            <groupId>com.auth0</groupId>
+            <artifactId>java-jwt</artifactId>
+            <version>3.1.0</version>
+        </dependency>
+
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>

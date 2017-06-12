@@ -186,4 +186,13 @@ public class Configuration {
     public static String feedbackDaoImpl() {
         return readConf("feedbackDaoImpl","sleepingpill");
     }
+
+    public static String auth0Token() {
+        return readConf("auth0Token", "");
+    }
+
+    public static String auth0Issuer() {
+        return readConf("auth0Issuer", "");
+    }
+
 }
