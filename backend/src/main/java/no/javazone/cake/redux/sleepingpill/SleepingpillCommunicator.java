@@ -191,11 +191,8 @@ public class SleepingpillCommunicator {
     private JsonArray allSubmittedTalksFromConference(String conferenceid) {
         JsonArray conferences = allTalkFromConferenceSleepingPillFormat(conferenceid);
 
-	System.out.println("DEBUG: Fetched talks from " + conferenceid + ". Got " + conferences.objectStream().count());
-
         JsonArray withoutDraft = JsonArray.fromNodeStream(conferences.objectStream().filter(ob -> !"DRAFT".equals(ob.requiredString("status"))));
 
-	System.out.println("DEBUG: Without drafts: " + withoutDraft.objectStream().count());
         return withoutDraft;
     }
 
