@@ -76,13 +76,16 @@ public class SleepingpillCommunicator {
                 speakerEmail = URLEncoder.encode(speakerEmail, "UTF-8");
             } catch (UnsupportedEncodingException ignored) {
             }
-            String url = Configuration.sleepingPillBaseLocation() + "/data/submitter/" + speakerEmail + "/session";
-            JsonObject speakerTalks = parseJsonFromConnection(openConnection(url));
-            JsonArray otherTalks = JsonArray.fromNodeStream(
-                    speakerTalks.requiredArray("sessions").objectStream()
-                            .filter(obj -> !(obj.stringValue("id").equals(Optional.of(talkid)) || obj.stringValue("status").equals(Optional.of("DRAFT"))))
-                            .map(obj -> buildSimularTalk(obj, allConferences))
-            );
+            JsonArray otherTalks = new JsonArray();
+            if(speakerEmail != null && !speakerEmail.isEmpty()) {
+                String url = Configuration.sleepingPillBaseLocation() + "/data/submitter/" + speakerEmail + "/session";
+                JsonObject speakerTalks = parseJsonFromConnection(openConnection(url));
+                otherTalks = JsonArray.fromNodeStream(
+                        speakerTalks.requiredArray("sessions").objectStream()
+                                .filter(obj -> !(obj.stringValue("id").equals(Optional.of(talkid)) || obj.stringValue("status").equals(Optional.of("DRAFT"))))
+                                .map(obj -> buildSimularTalk(obj, allConferences))
+                );
+            }
             speaker.put("spOtherTalks", otherTalks);
         }
 
